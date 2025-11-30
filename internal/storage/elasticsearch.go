@@ -1,3 +1,4 @@
+// Package storage содержит реализации хранилищ для Elasticsearch/OpenSearch и PostgreSQL.
 package storage
 
 import (
@@ -14,13 +15,17 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
+// ElasticsearchStorage предоставляет методы для работы с Elasticsearch/OpenSearch.
+// Использует прямые HTTP запросы для совместимости с OpenSearch.
 type ElasticsearchStorage struct {
-	client     *elasticsearch.Client
-	index      string
-	httpClient *http.Client
-	baseURL    string
+	client     *elasticsearch.Client // Официальный клиент Elasticsearch
+	index      string                 // Имя индекса для локаций
+	httpClient *http.Client           // HTTP клиент для прямых запросов
+	baseURL    string                 // Базовый URL Elasticsearch/OpenSearch
 }
 
+// NewElasticsearchStorageWithURL создает новый экземпляр ElasticsearchStorage с указанным URL.
+// Используется для поддержки OpenSearch через прямые HTTP запросы.
 func NewElasticsearchStorageWithURL(client *elasticsearch.Client, index string, baseURL string) *ElasticsearchStorage {
 	return &ElasticsearchStorage{
 		client:     client,
@@ -30,12 +35,15 @@ func NewElasticsearchStorageWithURL(client *elasticsearch.Client, index string, 
 	}
 }
 
+// NewElasticsearchStorage создает новый экземпляр ElasticsearchStorage с URL по умолчанию.
+// Использует http://localhost:9200 как базовый URL.
 func NewElasticsearchStorage(client *elasticsearch.Client, index string) *ElasticsearchStorage {
 	// Используем значение по умолчанию, если URL не передан
 	return NewElasticsearchStorageWithURL(client, index, "http://localhost:9200")
 }
 
-// CreateIndex создает индекс с заданным маппингом
+// CreateIndex создает индекс в Elasticsearch/OpenSearch с заданным маппингом.
+// Если индекс уже существует, функция возвращает nil без ошибки.
 func (es *ElasticsearchStorage) CreateIndex(ctx context.Context, mappingJSON string) error {
 	res, err := es.client.Indices.Exists([]string{es.index})
 	if err != nil {
@@ -67,7 +75,8 @@ func (es *ElasticsearchStorage) CreateIndex(ctx context.Context, mappingJSON str
 	return nil
 }
 
-// IndexLocation индексирует локацию
+// IndexLocation индексирует одну локацию в Elasticsearch/OpenSearch.
+// Если локация с таким ID уже существует, она будет обновлена.
 func (es *ElasticsearchStorage) IndexLocation(ctx context.Context, location *models.Location) error {
 	body, err := json.Marshal(location)
 	if err != nil {
@@ -95,7 +104,9 @@ func (es *ElasticsearchStorage) IndexLocation(ctx context.Context, location *mod
 	return nil
 }
 
-// BulkIndexLocations индексирует несколько локаций за раз
+// BulkIndexLocations индексирует несколько локаций за один запрос.
+// Использует Bulk API для эффективной массовой индексации.
+// Использует прямые HTTP запросы для совместимости с OpenSearch.
 func (es *ElasticsearchStorage) BulkIndexLocations(ctx context.Context, locations []*models.Location) error {
 	var buf bytes.Buffer
 
@@ -138,9 +149,18 @@ func (es *ElasticsearchStorage) BulkIndexLocations(ctx context.Context, location
 	return nil
 }
 
-// GetLocation получает локацию по ID
+// GetLocation получает локацию по её уникальному идентификатору.
+// Возвращает ошибку, если локация не найдена.
+// Использует прямой HTTP запрос для совместимости с OpenSearch.
 func (es *ElasticsearchStorage) GetLocation(ctx context.Context, id string) (*models.Location, error) {
-	res, err := es.client.Get(es.index, id, es.client.Get.WithContext(ctx))
+	// Используем прямой HTTP запрос для обхода проверки типа сервера
+	url := fmt.Sprintf("%s/%s/_doc/%s", es.baseURL, es.index, id)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	res, err := es.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get location: %w", err)
 	}
@@ -150,12 +170,13 @@ func (es *ElasticsearchStorage) GetLocation(ctx context.Context, id string) (*mo
 		return nil, fmt.Errorf("location not found")
 	}
 
-	if res.IsError() {
+	if res.StatusCode >= 400 {
 		body, _ := io.ReadAll(res.Body)
-		return nil, fmt.Errorf("error getting location: %s", string(body))
+		return nil, fmt.Errorf("error getting location: status %d, body: %s", res.StatusCode, string(body))
 	}
 
 	var result struct {
+		Found  bool           `json:"found"`
 		Source models.Location `json:"_source"`
 	}
 
@@ -163,10 +184,16 @@ func (es *ElasticsearchStorage) GetLocation(ctx context.Context, id string) (*mo
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
+	if !result.Found {
+		return nil, fmt.Errorf("location not found")
+	}
+
 	return &result.Source, nil
 }
 
-// RecommendLocations выполняет поиск и ранжирование локаций
+// RecommendLocations выполняет поиск и ранжирование локаций на основе критериев запроса.
+// Использует комбинированное ранжирование по traffic_score, competition_density и демографии.
+// Использует прямые HTTP запросы для совместимости с OpenSearch.
 func (es *ElasticsearchStorage) RecommendLocations(ctx context.Context, req *models.RecommendRequest) ([]*models.Location, error) {
 	query := es.buildRecommendQuery(req)
 

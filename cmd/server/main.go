@@ -1,3 +1,19 @@
+// @title           Location Recommendation System API
+// @version         1.0
+// @description     REST API для рекомендательной системы локаций для бизнеса. Система предоставляет рекомендации локаций на основе анализа трафика, конкуренции и демографических данных.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.email  akozadaev@inbox.ru
+// @contact.url    https://github.com/akozadaev/go_es_analytical_system
+
+// @license.name  MIT
+// @license.url   https://opensource.org/licenses/MIT
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @schemes   http https
 package main
 
 import (
@@ -11,11 +27,13 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/akozadaev/go_es_analytical_system/docs" // swagger docs
 	"github.com/akozadaev/go_es_analytical_system/internal/config"
 	"github.com/akozadaev/go_es_analytical_system/internal/handlers"
 	"github.com/akozadaev/go_es_analytical_system/internal/storage"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -92,6 +110,14 @@ func main() {
 	router.HandleFunc("/locations/{id}", h.GetLocation).Methods("GET")
 	router.HandleFunc("/business-types", h.GetBusinessTypes).Methods("GET")
 	router.HandleFunc("/regions", h.GetRegions).Methods("GET")
+
+	// Swagger UI
+	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("swagger-ui"),
+	))
 
 	// Настройка CORS
 	router.Use(func(next http.Handler) http.Handler {

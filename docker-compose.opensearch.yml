@@ -12,6 +12,8 @@ services:
       - discovery.type=single-node
       - "DISABLE_SECURITY_PLUGIN=true"
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      # Увеличиваем пороги использования диска для работы на заполненном диске
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
     ports:
       - "9200:9200"
       - "9600:9600"

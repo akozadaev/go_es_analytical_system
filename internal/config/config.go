@@ -1,19 +1,24 @@
+// Package config предоставляет загрузку конфигурации приложения из переменных окружения.
 package config
 
 import (
 	"os"
 )
 
+// Config содержит все параметры конфигурации приложения.
+// Значения загружаются из переменных окружения с fallback на значения по умолчанию.
 type Config struct {
-	ElasticsearchURL string
-	PostgresHost     string
-	PostgresPort     string
-	PostgresUser     string
-	PostgresPassword string
-	PostgresDB       string
-	AppPort          string
+	ElasticsearchURL string // URL для подключения к Elasticsearch/OpenSearch
+	PostgresHost     string // Хост PostgreSQL
+	PostgresPort     string // Порт PostgreSQL
+	PostgresUser     string // Пользователь PostgreSQL
+	PostgresPassword string // Пароль PostgreSQL
+	PostgresDB       string // Имя базы данных PostgreSQL
+	AppPort          string // Порт для HTTP сервера
 }
 
+// Load загружает конфигурацию из переменных окружения.
+// Если переменная не установлена, используется значение по умолчанию.
 func Load() *Config {
 	return &Config{
 		ElasticsearchURL: getEnv("ELASTICSEARCH_URL", "http://localhost:9200"),

@@ -9,10 +9,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// PostgresStorage предоставляет методы для работы со справочниками в PostgreSQL.
 type PostgresStorage struct {
-	db *sql.DB
+	db *sql.DB // Подключение к базе данных PostgreSQL
 }
 
+// NewPostgresStorage создает новый экземпляр PostgresStorage и устанавливает подключение к БД.
+// DSN должен быть в формате: "host=... port=... user=... password=... dbname=... sslmode=..."
 func NewPostgresStorage(dsn string) (*PostgresStorage, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -26,11 +29,13 @@ func NewPostgresStorage(dsn string) (*PostgresStorage, error) {
 	return &PostgresStorage{db: db}, nil
 }
 
+// Close закрывает подключение к базе данных PostgreSQL.
 func (ps *PostgresStorage) Close() error {
 	return ps.db.Close()
 }
 
-// GetBusinessTypes возвращает все типы бизнеса
+// GetBusinessTypes возвращает список всех типов бизнеса из справочника.
+// Результаты отсортированы по имени.
 func (ps *PostgresStorage) GetBusinessTypes(ctx context.Context) ([]*models.BusinessType, error) {
 	query := `SELECT id, name, description, created_at, updated_at FROM business_types ORDER BY name`
 
@@ -62,7 +67,8 @@ func (ps *PostgresStorage) GetBusinessTypes(ctx context.Context) ([]*models.Busi
 	return businessTypes, nil
 }
 
-// GetRegions возвращает все регионы
+// GetRegions возвращает список всех регионов из справочника.
+// Результаты отсортированы по имени. Поддерживает иерархическую структуру через ParentRegionID.
 func (ps *PostgresStorage) GetRegions(ctx context.Context) ([]*models.Region, error) {
 	query := `SELECT id, name, parent_region_id, created_at, updated_at FROM regions ORDER BY name`
 

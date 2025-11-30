@@ -1,3 +1,4 @@
+// Package handlers содержит HTTP обработчики для REST API рекомендательной системы.
 package handlers
 
 import (
@@ -10,11 +11,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Handlers содержит зависимости для обработки HTTP запросов.
+// Использует Elasticsearch для поиска локаций и PostgreSQL для справочников.
 type Handlers struct {
-	esStorage    *storage.ElasticsearchStorage
-	pgStorage    *storage.PostgresStorage
+	esStorage *storage.ElasticsearchStorage // Хранилище для Elasticsearch/OpenSearch
+	pgStorage *storage.PostgresStorage      // Хранилище для PostgreSQL
 }
 
+// NewHandlers создает новый экземпляр Handlers с заданными хранилищами.
 func NewHandlers(esStorage *storage.ElasticsearchStorage, pgStorage *storage.PostgresStorage) *Handlers {
 	return &Handlers{
 		esStorage: esStorage,
@@ -22,7 +26,20 @@ func NewHandlers(esStorage *storage.ElasticsearchStorage, pgStorage *storage.Pos
 	}
 }
 
-// RecommendLocations обрабатывает запрос на рекомендацию локаций
+// RecommendLocations обрабатывает POST запрос на получение рекомендаций локаций.
+// Принимает RecommendRequest в теле запроса и возвращает отсортированный список локаций.
+// Эндпоинт: POST /locations/recommend
+//
+// @Summary      Получить рекомендации локаций
+// @Description  Возвращает список рекомендованных локаций для указанного типа бизнеса в регионе. Локации ранжируются по релевантности с учетом traffic_score, competition_density и демографии.
+// @Tags         locations
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.RecommendRequest  true  "Запрос на рекомендации"
+// @Success      200      {object}  models.RecommendResponse
+// @Failure      400      {object}  map[string]string  "Неверный запрос"
+// @Failure      500      {object}  map[string]string  "Внутренняя ошибка сервера"
+// @Router       /locations/recommend [post]
 func (h *Handlers) RecommendLocations(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -70,7 +87,19 @@ func (h *Handlers) RecommendLocations(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetLocation обрабатывает запрос на получение деталей локации
+// GetLocation обрабатывает GET запрос на получение детальной информации о локации по ID.
+// Эндпоинт: GET /locations/{id}
+//
+// @Summary      Получить детали локации
+// @Description  Возвращает полную информацию о локации по её идентификатору
+// @Tags         locations
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Идентификатор локации"
+// @Success      200  {object}  models.Location
+// @Failure      404  {object}  map[string]string  "Локация не найдена"
+// @Failure      500  {object}  map[string]string  "Внутренняя ошибка сервера"
+// @Router       /locations/{id} [get]
 func (h *Handlers) GetLocation(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -104,7 +133,18 @@ func (h *Handlers) GetLocation(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetBusinessTypes обрабатывает запрос на получение списка типов бизнеса
+// GetBusinessTypes обрабатывает GET запрос на получение списка всех типов бизнеса.
+// Возвращает данные из справочника PostgreSQL.
+// Эндпоинт: GET /business-types
+//
+// @Summary      Получить список типов бизнеса
+// @Description  Возвращает все доступные типы бизнеса из справочника
+// @Tags         business-types
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   models.BusinessType
+// @Failure      500  {object}  map[string]string  "Внутренняя ошибка сервера"
+// @Router       /business-types [get]
 func (h *Handlers) GetBusinessTypes(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -132,7 +172,18 @@ func (h *Handlers) GetBusinessTypes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetRegions обрабатывает запрос на получение списка регионов
+// GetRegions обрабатывает GET запрос на получение списка всех регионов.
+// Возвращает данные из справочника PostgreSQL с поддержкой иерархии.
+// Эндпоинт: GET /regions
+//
+// @Summary      Получить список регионов
+// @Description  Возвращает все доступные регионы из справочника с поддержкой иерархии
+// @Tags         regions
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   models.Region
+// @Failure      500  {object}  map[string]string  "Внутренняя ошибка сервера"
+// @Router       /regions [get]
 func (h *Handlers) GetRegions(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -160,11 +211,20 @@ func (h *Handlers) GetRegions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HealthCheck обрабатывает запрос на проверку здоровья сервиса
+// HealthCheck обрабатывает GET запрос на проверку работоспособности сервиса.
+// Используется для мониторинга и проверки доступности API.
+// Эндпоинт: GET /health
+//
+// @Summary      Проверка работоспособности сервиса
+// @Description  Возвращает статус сервиса. Используется для мониторинга и проверки доступности.
+// @Tags         health
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /health [get]
 func (h *Handlers) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"status": "ok",
 	})
 }
-
