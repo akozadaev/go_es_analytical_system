@@ -1,0 +1,265 @@
+basePath: /
+definitions:
+  github_com_akozadaev_go_es_analytical_system_internal_models.BusinessType:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_akozadaev_go_es_analytical_system_internal_models.Demographics:
+    properties:
+      age_group:
+        type: string
+      average_income:
+        type: number
+      interests:
+        items:
+          type: string
+        type: array
+      population_density:
+        type: number
+    type: object
+  github_com_akozadaev_go_es_analytical_system_internal_models.GeoPoint:
+    properties:
+      lat:
+        description: Широта (latitude)
+        type: number
+      lon:
+        description: Долгота (longitude)
+        type: number
+    type: object
+  github_com_akozadaev_go_es_analytical_system_internal_models.Location:
+    properties:
+      address:
+        type: string
+      business_types_suitable:
+        items:
+          type: string
+        type: array
+      city:
+        type: string
+      competition_density:
+        type: number
+      coordinates:
+        $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.GeoPoint'
+      created_at:
+        type: string
+      demographics:
+        $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Demographics'
+      description:
+        type: string
+      embedding:
+        items:
+          type: number
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      region:
+        type: string
+      score:
+        description: Для ранжирования
+        type: number
+      traffic_score:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  github_com_akozadaev_go_es_analytical_system_internal_models.RecommendRequest:
+    properties:
+      business_type:
+        description: Тип бизнеса (обязательно)
+        type: string
+      city:
+        description: Город для фильтрации (опционально)
+        type: string
+      limit:
+        description: Максимальное количество результатов (по умолчанию 20)
+        type: integer
+      region:
+        description: Регион для поиска (обязательно)
+        type: string
+    type: object
+  github_com_akozadaev_go_es_analytical_system_internal_models.RecommendResponse:
+    properties:
+      locations:
+        items:
+          $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Location'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_akozadaev_go_es_analytical_system_internal_models.Region:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      parent_region_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: akozadaev@inbox.ru
+    name: API Support
+    url: https://github.com/akozadaev/go_es_analytical_system
+  description: REST API для рекомендательной системы локаций для бизнеса. Система
+    предоставляет рекомендации локаций на основе анализа трафика, конкуренции и демографических
+    данных.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Location Recommendation System API
+  version: "1.0"
+paths:
+  /business-types:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все доступные типы бизнеса из справочника
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.BusinessType'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список типов бизнеса
+      tags:
+      - business-types
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статус сервиса. Используется для мониторинга и проверки
+        доступности.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Проверка работоспособности сервиса
+      tags:
+      - health
+  /locations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает полную информацию о локации по её идентификатору
+      parameters:
+      - description: Идентификатор локации
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Location'
+        "404":
+          description: Локация не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить детали локации
+      tags:
+      - locations
+  /locations/recommend:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает список рекомендованных локаций для указанного типа бизнеса
+        в регионе. Локации ранжируются по релевантности с учетом traffic_score, competition_density
+        и демографии.
+      parameters:
+      - description: Запрос на рекомендации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.RecommendRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.RecommendResponse'
+        "400":
+          description: Неверный запрос
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить рекомендации локаций
+      tags:
+      - locations
+  /regions:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все доступные регионы из справочника с поддержкой иерархии
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Region'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список регионов
+      tags:
+      - regions
+schemes:
+- http
+- https
+swagger: "2.0"

@@ -1,0 +1,391 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API для рекомендательной системы локаций для бизнеса. Система предоставляет рекомендации локаций на основе анализа трафика, конкуренции и демографических данных.",
+        "title": "Location Recommendation System API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "https://github.com/akozadaev/go_es_analytical_system",
+            "email": "akozadaev@inbox.ru"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/business-types": {
+            "get": {
+                "description": "Возвращает все доступные типы бизнеса из справочника",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "business-types"
+                ],
+                "summary": "Получить список типов бизнеса",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.BusinessType"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Возвращает статус сервиса. Используется для мониторинга и проверки доступности.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Проверка работоспособности сервиса",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/locations/recommend": {
+            "post": {
+                "description": "Возвращает список рекомендованных локаций для указанного типа бизнеса в регионе. Локации ранжируются по релевантности с учетом traffic_score, competition_density и демографии.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "locations"
+                ],
+                "summary": "Получить рекомендации локаций",
+                "parameters": [
+                    {
+                        "description": "Запрос на рекомендации",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.RecommendRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.RecommendResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/locations/{id}": {
+            "get": {
+                "description": "Возвращает полную информацию о локации по её идентификатору",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "locations"
+                ],
+                "summary": "Получить детали локации",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор локации",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Location"
+                        }
+                    },
+                    "404": {
+                        "description": "Локация не найдена",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/regions": {
+            "get": {
+                "description": "Возвращает все доступные регионы из справочника с поддержкой иерархии",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "regions"
+                ],
+                "summary": "Получить список регионов",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Region"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_akozadaev_go_es_analytical_system_internal_models.BusinessType": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_akozadaev_go_es_analytical_system_internal_models.Demographics": {
+            "type": "object",
+            "properties": {
+                "age_group": {
+                    "type": "string"
+                },
+                "average_income": {
+                    "type": "number"
+                },
+                "interests": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "population_density": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_akozadaev_go_es_analytical_system_internal_models.GeoPoint": {
+            "type": "object",
+            "properties": {
+                "lat": {
+                    "description": "Широта (latitude)",
+                    "type": "number"
+                },
+                "lon": {
+                    "description": "Долгота (longitude)",
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_akozadaev_go_es_analytical_system_internal_models.Location": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "business_types_suitable": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "city": {
+                    "type": "string"
+                },
+                "competition_density": {
+                    "type": "number"
+                },
+                "coordinates": {
+                    "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.GeoPoint"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "demographics": {
+                    "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Demographics"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "embedding": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "score": {
+                    "description": "Для ранжирования",
+                    "type": "number"
+                },
+                "traffic_score": {
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_akozadaev_go_es_analytical_system_internal_models.RecommendRequest": {
+            "type": "object",
+            "properties": {
+                "business_type": {
+                    "description": "Тип бизнеса (обязательно)",
+                    "type": "string"
+                },
+                "city": {
+                    "description": "Город для фильтрации (опционально)",
+                    "type": "string"
+                },
+                "limit": {
+                    "description": "Максимальное количество результатов (по умолчанию 20)",
+                    "type": "integer"
+                },
+                "region": {
+                    "description": "Регион для поиска (обязательно)",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_akozadaev_go_es_analytical_system_internal_models.RecommendResponse": {
+            "type": "object",
+            "properties": {
+                "locations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_akozadaev_go_es_analytical_system_internal_models.Location"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_akozadaev_go_es_analytical_system_internal_models.Region": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_region_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
