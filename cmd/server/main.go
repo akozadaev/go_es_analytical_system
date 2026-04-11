@@ -59,11 +59,17 @@ func main() {
 	// Создание индекса с маппингом
 	esStorage := storage.NewElasticsearchStorageWithURL(esClient, "locations", cfg.ElasticsearchURL)
 
-	// Пытаемся найти файл маппинга в разных местах
+	// Пытаемся найти файл маппинга в разных местах (см. ES_INDEX_MAPPING в config).
+	rel := cfg.ElasticsearchMappingPath
+	if rel == "" {
+		rel = "migrations/elasticsearch_mapping.json"
+	}
+	exeDir := filepath.Dir(os.Args[0])
 	mappingPaths := []string{
-		"migrations/elasticsearch_mapping.json",
-		"../migrations/elasticsearch_mapping.json",
-		filepath.Join(filepath.Dir(os.Args[0]), "../migrations/elasticsearch_mapping.json"),
+		rel,
+		filepath.Join("..", rel),
+		filepath.Join(exeDir, rel),
+		filepath.Join(exeDir, "..", rel),
 	}
 
 	var mappingData []byte

@@ -37,12 +37,38 @@
 │   ├── models/          # Модели данных
 │   └── storage/         # Клиенты для ES и PostgreSQL
 ├── migrations/
-│   ├── 001_init_schema.sql           # SQL миграции
-│   └── elasticsearch_mapping.json     # Маппинг ES индекса
+│   ├── 001_init_schema.sql           # SQL миграции для PostgreSQL
+│   ├── elasticsearch_mapping.json     # Схема данных для индекса Elasticsearch
+│   └── opensearch_mapping.json        # Схема данных для индекса OpenSearch
 ├── docker-compose.yml
 ├── Dockerfile
 └── README.md
 ```
+
+## Файлы маппинга индексов
+
+Проект поддерживает два варианта поисковых движков: Elasticsearch и OpenSearch. Для каждого из них предусмотрены отдельные файлы схемы данных (mapping):
+
+### `migrations/elasticsearch_mapping.json`
+Определяет структуру индекса для Elasticsearch 8.x:
+- Содержит настройки индекса (1 шард, 0 реплик)
+- Определяет типы полей для документов локаций
+- Использует `dense_vector` для поля `embedding` (векторные представления)
+
+### `migrations/opensearch_mapping.json`
+Аналогичная схема для OpenSearch 2.x:
+- Включает настройку `"knn": true` для поддержки векторного поиска
+- Использует `knn_vector` вместо `dense_vector`
+- Полностью совместим с Elasticsearch API
+
+Оба файла описывают одинаковые поля документов:
+- `id`, `name`, `address` - идентификация локации
+- `coordinates` - географические координаты (lat/lon)
+- `region`, `city` - административное деление
+- `business_types_suitable` - подходящие типы бизнеса
+- `traffic_score`, `competition_density` - аналитические метрики
+- `demographics` - демографические данные
+- `embedding` - векторное представление для семантического поиска
 
 ## Быстрый старт
 
@@ -256,6 +282,7 @@ go run cmd/indexer/main.go
 Переменные окружения:
 
 - `ELASTICSEARCH_URL` - URL Elasticsearch (по умолчанию: http://localhost:9200)
+- `ES_INDEX_MAPPING` - путь к JSON создания индекса `locations` (settings + mappings). По умолчанию `migrations/elasticsearch_mapping.json` (**Elasticsearch 8**: поле `embedding` как **`dense_vector`**, 128 измерений, `index: true`, `similarity: cosinus` — для kNN в ES). Для **OpenSearch** в `docker-compose.opensearch.yml` задано `migrations/opensearch_mapping.json` (**`knn_vector`**, `dimension: 128`). После смены маппинга удалите индекс `locations` и создайте его заново, затем переиндексируйте данные (`./indexer` / `make docker-index-opensearch`).
 - `POSTGRES_HOST` - Хост PostgreSQL (по умолчанию: localhost)
 - `POSTGRES_PORT` - Порт PostgreSQL (по умолчанию: 5432)
 - `POSTGRES_USER` - Пользователь PostgreSQL (по умолчанию: analytical_user)
@@ -343,7 +370,7 @@ curl -sS -X POST 'http://localhost:8080/ollama/autocomplete' \
 - `traffic_score` (float) - Оценка трафика (0-10)
 - `competition_density` (float) - Плотность конкурентов (0-10)
 - `demographics` (object) - Демографические данные
-- `embedding` (dense_vector, 128 dims) - Векторное представление для kNN поиска
+- `embedding` — **`dense_vector`** (Elasticsearch) или **`knn_vector`** (OpenSearch), **128** измерений; маппинг задаётся файлами `migrations/elasticsearch_mapping.json` и `migrations/opensearch_mapping.json`
 
 ### PostgreSQL Tables
 

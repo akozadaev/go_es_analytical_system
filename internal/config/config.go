@@ -12,12 +12,16 @@ import (
 // Значения загружаются из переменных окружения с fallback на значения по умолчанию.
 type Config struct {
 	ElasticsearchURL string // URL для подключения к Elasticsearch/OpenSearch
-	PostgresHost     string // Хост PostgreSQL
-	PostgresPort     string // Порт PostgreSQL
-	PostgresUser     string // Пользователь PostgreSQL
-	PostgresPassword string // Пароль PostgreSQL
-	PostgresDB       string // Имя базы данных PostgreSQL
-	AppPort          string // Порт для HTTP сервера
+	// ElasticsearchMappingPath — JSON тела создания индекса (settings + mappings).
+	// Elasticsearch: migrations/elasticsearch_mapping.json (dense_vector).
+	// OpenSearch kNN: migrations/opensearch_mapping.json (knn_vector). Переменная окружения: ES_INDEX_MAPPING.
+	ElasticsearchMappingPath string
+	PostgresHost             string // Хост PostgreSQL
+	PostgresPort             string // Порт PostgreSQL
+	PostgresUser             string // Пользователь PostgreSQL
+	PostgresPassword         string // Пароль PostgreSQL
+	PostgresDB               string // Имя базы данных PostgreSQL
+	AppPort                  string // Порт для HTTP сервера
 
 	// Readiness check parameters
 	ReadinessDBTimeoutSec  int    // Таймаут для проверки БД в секундах
@@ -38,13 +42,14 @@ type Config struct {
 // Если переменная не установлена, используется значение по умолчанию.
 func Load() *Config {
 	return &Config{
-		ElasticsearchURL: getEnv("ELASTICSEARCH_URL", "http://localhost:9200"),
-		PostgresHost:     getEnv("POSTGRES_HOST", "localhost"),
-		PostgresPort:     getEnv("POSTGRES_PORT", "5432"),
-		PostgresUser:     getEnv("POSTGRES_USER", "analytical_user"),
-		PostgresPassword: getEnv("POSTGRES_PASSWORD", "analytical_pass"),
-		PostgresDB:       getEnv("POSTGRES_DB", "analytical_db"),
-		AppPort:          getEnv("APP_PORT", "8080"),
+		ElasticsearchURL:         getEnv("ELASTICSEARCH_URL", "http://localhost:9200"),
+		ElasticsearchMappingPath: getEnv("ES_INDEX_MAPPING", "migrations/elasticsearch_mapping.json"),
+		PostgresHost:             getEnv("POSTGRES_HOST", "localhost"),
+		PostgresPort:             getEnv("POSTGRES_PORT", "5432"),
+		PostgresUser:             getEnv("POSTGRES_USER", "analytical_user"),
+		PostgresPassword:         getEnv("POSTGRES_PASSWORD", "analytical_pass"),
+		PostgresDB:               getEnv("POSTGRES_DB", "analytical_db"),
+		AppPort:                  getEnv("APP_PORT", "8080"),
 
 		ReadinessDBTimeoutSec:  getEnvInt("READINESS_DB_TIMEOUT_SEC", 5),
 		ReadinessDiskPath:      getEnv("READINESS_DISK_PATH", "."),

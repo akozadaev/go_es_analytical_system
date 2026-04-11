@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": { "type": "keyword" },
+      "name": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "address": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 512 }
+        }
+      },
+      "coordinates": {
+        "properties": {
+          "lat": { "type": "float" },
+          "lon": { "type": "float" }
+        }
+      },
+      "region": { "type": "keyword" },
+      "city": { "type": "keyword" },
+      "description": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword", "ignore_above": 256 }
+        }
+      },
+      "business_types_suitable": { "type": "keyword" },
+      "traffic_score": { "type": "float" },
+      "competition_density": { "type": "float" },
+      "demographics": {
+        "properties": {
+          "age_group": { "type": "keyword" },
+          "average_income": { "type": "float" },
+          "interests": { "type": "keyword" },
+          "population_density": { "type": "float" }
+        }
+      },
+      "embedding": {
+        "type": "dense_vector",
+        "dims": 128,
+        "index": true,
+        "similarity": "cosine"
+      },
+      "created_at": { "type": "date" },
+      "updated_at": { "type": "date" }
+    }
+  }
+}

@@ -27,6 +27,7 @@ WORKDIR /root/
 # Копирование бинарников из builder
 COPY --from=builder /app/main .
 COPY --from=builder /app/indexer .
+COPY --from=builder /app/migrations ./migrations
 
 EXPOSE 8080
 
