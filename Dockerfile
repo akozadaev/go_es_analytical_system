@@ -28,8 +28,9 @@ WORKDIR /root/
 COPY --from=builder /app/main .
 COPY --from=builder /app/indexer .
 COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/front ./front
+COPY --from=builder /app/js_API_Ya_map ./js_API_Ya_map
 
 EXPOSE 8080
 
 CMD ["./main"]
-

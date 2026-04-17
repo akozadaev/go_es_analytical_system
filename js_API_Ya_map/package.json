@@ -1,0 +1,15 @@
+{
+  "name": "js-api-ya-map-indexer",
+  "version": "1.0.0",
+  "description": "Web indexer for Elasticsearch/OpenSearch using Yandex Maps JS API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

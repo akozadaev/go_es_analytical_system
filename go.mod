@@ -5,6 +5,7 @@ go 1.25.5
 require (
 	github.com/akozadaev/go_readiness v1.0.0
 	github.com/elastic/go-elasticsearch/v8 v8.19.0
+	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/gorilla/mux v1.8.1
 	github.com/lib/pq v1.10.9
 	github.com/swaggo/http-swagger v1.3.4

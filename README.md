@@ -289,7 +289,7 @@ go run cmd/indexer/main.go
 - `POSTGRES_PASSWORD` - Пароль PostgreSQL (по умолчанию: analytical_pass)
 - `POSTGRES_DB` - Имя базы данных (по умолчанию: analytical_db)
 - `APP_PORT` - Порт приложения (по умолчанию: 8080)
-- `OLLAMA_BASE_URL` - Базовый URL OpenAI-совместимого API Ollama (по умолчанию в клиенте: `http://localhost:11434/v1`; в Docker Compose для сервиса `app` задаётся `http://host.docker.internal:11434/v1`)
+- `OLLAMA_BASE_URL` - Базовый URL OpenAI-совместимого API Ollama (по умолчанию в клиенте: `http://localhost:11434/v1`; в Docker Compose для сервиса `app` по умолчанию используется `http://host.docker.internal:11434/v1`, но его можно переопределить переменной окружения)
 - `OLLAMA_CHAT_MODEL` - Модель для `POST /ollama/chat` (пусто — значение по умолчанию из библиотеки [go_ollama_client](https://github.com/akozadaev/go_ollama_client))
 - `OLLAMA_AUTOCOMPLETE_MODEL` - Модель для `POST /ollama/autocomplete` (пусто — дефолт клиента)
 - `OLLAMA_EMBED_MODEL` - Модель эмбеддингов (зарезервировано под будущее использование; пусто — дефолт клиента)
@@ -338,6 +338,20 @@ curl -sS http://172.17.0.1:11434/api/version
 ```
 
 Если второй адрес у вас другой (не `172.17.0.1`), подставьте IP интерфейса **`docker0`** на машине: `ip -brief addr show docker0`.
+
+### Если `host.docker.internal` не подходит (WSL/кастомный bridge)
+
+Переопределите URL Ollama перед запуском compose. Например, если Ollama доступна по `172.31.224.1:11434`:
+
+```bash
+OLLAMA_BASE_URL=http://172.31.224.1:11434/v1 make docker-up-opensearch
+```
+
+Альтернатива для постоянной настройки: положите в `.env` в корне проекта:
+
+```dotenv
+OLLAMA_BASE_URL=http://172.31.224.1:11434/v1
+```
 
 ### Безопасность
 
@@ -455,4 +469,3 @@ MIT License
 ## Автор
 
 Alexey Kozadaev
-

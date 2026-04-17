@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yandex JS API Indexer</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=6bf8d3e3-967a-4e76-ab37-e238bb4dd0c2&lang=ru_RU" type="text/javascript"></script>
+</head>
+<body>
+  <main class="layout">
+    <section class="panel">
+      <h1>Индексация локаций через Яндекс Карты</h1>
+      <p>Кликните по карте, заполните карточку и отправьте данные в Elasticsearch/OpenSearch.</p>
+
+      <div class="grid">
+        <label>
+          URL Elasticsearch/OpenSearch
+          <input id="esUrl" value="http://localhost:9200" />
+        </label>
+        <label>
+          Индекс
+          <input id="indexName" value="locations" />
+        </label>
+      </div>
+
+      <div class="grid">
+        <label>
+          Пользователь (опционально)
+          <input id="username" placeholder="elastic" />
+        </label>
+        <label>
+          Пароль (опционально)
+          <input id="password" type="password" />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="createIndexBtn">Создать индекс</button>
+        <button id="bulkIndexBtn">Индексировать точки</button>
+      </div>
+      <div class="grid">
+        <label>
+          Имя XML файла
+          <input id="xmlFileName" value="locations.xml" />
+        </label>
+      </div>
+      <div class="actions">
+        <button id="saveXmlBtn">Сохранить XML</button>
+      </div>
+
+      <hr>
+
+      <div class="grid">
+        <label>
+          Название
+          <input id="name" placeholder="Локация" />
+        </label>
+        <label>
+          Типы бизнеса (через запятую)
+          <input id="businessTypes" value="cafe,restaurant" />
+        </label>
+      </div>
+
+      <div class="grid">
+        <label>
+          Traffic score (0-10)
+          <input id="trafficScore" type="number" min="0" max="10" step="0.1" value="6.5" />
+        </label>
+        <label>
+          Competition density (0-10)
+          <input id="competitionDensity" type="number" min="0" max="10" step="0.1" value="4.2" />
+        </label>
+      </div>
+
+      <div class="grid">
+        <label>
+          Возрастная группа
+          <input id="ageGroup" value="26-35" />
+        </label>
+        <label>
+          Средний доход
+          <input id="averageIncome" type="number" value="75000" />
+        </label>
+      </div>
+
+      <div class="grid">
+        <label>
+          Интересы (через запятую)
+          <input id="interests" value="food,technology" />
+        </label>
+        <label>
+          Плотность населения
+          <input id="populationDensity" type="number" value="5000" />
+        </label>
+      </div>
+
+      <label>
+        Описание
+        <textarea id="description" rows="3" placeholder="Описание локации"></textarea>
+      </label>
+
+      <p class="hint">Адрес, город и регион будут заполнены автоматически после клика по карте (через `ymaps.geocode`).</p>
+      <p id="status" class="status"></p>
+    </section>
+
+    <section class="map-wrap">
+      <div id="map"></div>
+      <div class="list">
+        <h2>Точки для индексации: <span id="count">0</span></h2>
+        <ul id="pointsList"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="./auth-gate.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locations>
+  <location>
+    <id>loc_1775899508761_1</id>
+    <name>Локация 2</name>
+    <address>Тамбов, улица Карла Маркса</address>
+    <coordinates>
+      <lat>52.74518181386922</lat>
+      <lon>41.43851604643315</lon>
+    </coordinates>
+    <region>Центральный федеральный округ</region>
+    <city>Центральный федеральный округ</city>
+    <description>Добавлено через интерфейс Yandex Maps JS API</description>
+    <business_types_suitable>
+      <business_type>cafe</business_type>
+      <business_type>restaurant</business_type>
+    </business_types_suitable>
+    <traffic_score>6.5</traffic_score>
+    <competition_density>4.2</competition_density>
+    <demographics>
+      <age_group>26-35</age_group>
+      <average_income>75000</average_income>
+      <interests>
+        <interest>food</interest>
+        <interest>technology</interest>
+      </interests>
+      <population_density>5000</population_density>
+    </demographics>
+    <embedding>
+    </embedding>
+    <created_at>2026-04-11T09:25:08.761Z</created_at>
+    <updated_at>2026-04-11T09:25:08.761Z</updated_at>
+  </location>
+  <location>
+    <id>loc_1775899513024_2</id>
+    <name>Локация 3</name>
+    <address>Тамбов, 2-й Струговой переулок, 10</address>
+    <coordinates>
+      <lat>52.74106675586035</lat>
+      <lon>41.438859369187064</lon>
+    </coordinates>
+    <region>Центральный федеральный округ</region>
+    <city>Центральный федеральный округ</city>
+    <description>Добавлено через интерфейс Yandex Maps JS API</description>
+    <business_types_suitable>
+      <business_type>cafe</business_type>
+      <business_type>restaurant</business_type>
+    </business_types_suitable>
+    <traffic_score>6.5</traffic_score>
+    <competition_density>4.2</competition_density>
+    <demographics>
+      <age_group>26-35</age_group>
+      <average_income>75000</average_income>
+      <interests>
+        <interest>food</interest>
+        <interest>technology</interest>
+      </interests>
+      <population_density>5000</population_density>
+    </demographics>
+    <embedding>
+    </embedding>
+    <created_at>2026-04-11T09:25:13.024Z</created_at>
+    <updated_at>2026-04-11T09:25:13.024Z</updated_at>
+  </location>
+  <location>
+    <id>loc_1775899514977_3</id>
+    <name>Локация 4</name>
+    <address>Тамбов, улица Карла Маркса, 239</address>
+    <coordinates>
+      <lat>52.74262948210416</lat>
+      <lon>41.44435253324956</lon>
+    </coordinates>
+    <region>Центральный федеральный округ</region>
+    <city>Центральный федеральный округ</city>
+    <description>Добавлено через интерфейс Yandex Maps JS API</description>
+    <business_types_suitable>
+      <business_type>cafe</business_type>
+      <business_type>restaurant</business_type>
+    </business_types_suitable>
+    <traffic_score>6.5</traffic_score>
+    <competition_density>4.2</competition_density>
+    <demographics>
+      <age_group>26-35</age_group>
+      <average_income>75000</average_income>
+      <interests>
+        <interest>food</interest>
+        <interest>technology</interest>
+      </interests>
+      <population_density>5000</population_density>
+    </demographics>
+    <embedding>
+    </embedding>
+    <created_at>2026-04-11T09:25:14.977Z</created_at>
+    <updated_at>2026-04-11T09:25:14.977Z</updated_at>
+  </location>
+</locations>

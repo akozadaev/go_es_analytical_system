@@ -28,6 +28,7 @@ import (
 	"time"
 
 	_ "github.com/akozadaev/go_es_analytical_system/docs" // swagger docs
+	"github.com/akozadaev/go_es_analytical_system/internal/auth"
 	"github.com/akozadaev/go_es_analytical_system/internal/config"
 	"github.com/akozadaev/go_es_analytical_system/internal/handlers"
 	"github.com/akozadaev/go_es_analytical_system/internal/storage"
@@ -112,8 +113,51 @@ func main() {
 	// Инициализация handlers
 	h := handlers.NewHandlers(esStorage, pgStorage, cfg, ollamaClient)
 
+	if cfg.OAuth2AuthEnabled() {
+		log.Println("OAuth2 bearer auth enabled for API routes (go_oauth2_server-compatible)")
+	}
+	if cfg.OAuth2BrowserProxyEnabled() {
+		log.Println("OAuth2 browser proxy enabled: POST /api/auth/login, /api/auth/register → go_oauth2_server")
+	}
+
+	frontDir := resolveStaticDir("front/public")
+	mapDir := resolveStaticDir("js_API_Ya_map/public")
+	log.Printf("Static front: %s", frontDir)
+	log.Printf("Static map indexer: %s", mapDir)
+
 	// Настройка роутера
 	router := mux.NewRouter()
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+	router.Use(auth.Middleware(cfg))
+
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		http.Redirect(w, r, "/app/", http.StatusFound)
+	}).Methods(http.MethodGet)
+	router.HandleFunc("/app", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/app/", http.StatusFound)
+	}).Methods(http.MethodGet)
+
+	router.PathPrefix("/app/").Handler(http.StripPrefix("/app/", http.FileServer(http.Dir(frontDir))))
+	router.HandleFunc("/map-indexer", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/map-indexer/", http.StatusFound)
+	}).Methods(http.MethodGet)
+	router.PathPrefix("/map-indexer/").Handler(http.StripPrefix("/map-indexer/", http.FileServer(http.Dir(mapDir))))
+
 	router.HandleFunc("/health", h.HealthCheck).Methods("GET")
 	router.HandleFunc("/locations/recommend", h.RecommendLocations).Methods("POST")
 	router.HandleFunc("/locations/{id}", h.GetLocation).Methods("GET")
@@ -123,6 +167,10 @@ func main() {
 	router.HandleFunc("/ollama/chat", h.OllamaChat).Methods("POST")
 	router.HandleFunc("/ollama/autocomplete", h.OllamaAutocomplete).Methods("POST")
 
+	router.HandleFunc("/api/auth/register", h.OAuthRegister).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/auth/login", h.OAuthLogin).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/me", h.GetMe).Methods("GET", "OPTIONS")
+
 	// Swagger UI
 	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
@@ -130,20 +178,6 @@ func main() {
 		httpSwagger.DocExpansion("none"),
 		httpSwagger.DomID("swagger-ui"),
 	))
-
-	// Настройка CORS
-	router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			if r.Method == "OPTIONS" {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	})
 
 	// Настройка сервера
 	srv := &http.Server{
@@ -177,4 +211,37 @@ func main() {
 	}
 
 	log.Println("Server exited")
+}
+
+// resolveStaticDir ищет каталог относительно cwd и каталога бинарника (как путь к маппингу ES).
+func resolveStaticDir(rel string) string {
+	cwd, err := os.Getwd()
+	if err != nil {
+		cwd = "."
+	}
+	exePath, err := os.Executable()
+	exeDir := cwd
+	if err == nil {
+		exeDir = filepath.Dir(exePath)
+	}
+	candidates := []string{
+		rel,
+		filepath.Join(cwd, rel),
+		filepath.Join(exeDir, rel),
+		filepath.Join(exeDir, "..", rel),
+	}
+	for _, p := range candidates {
+		if fi, e := os.Stat(p); e == nil && fi.IsDir() {
+			abs, _ := filepath.Abs(p)
+			if abs != "" {
+				return abs
+			}
+			return p
+		}
+	}
+	abs, _ := filepath.Abs(filepath.Join(cwd, rel))
+	if abs != "" {
+		return abs
+	}
+	return filepath.Join(cwd, rel)
 }

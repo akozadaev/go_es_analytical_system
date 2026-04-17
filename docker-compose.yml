@@ -80,7 +80,11 @@ services:
       - POSTGRES_PASSWORD=analytical_pass
       - POSTGRES_DB=analytical_db
       - APP_PORT=8080
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434/v1}
+      - OAUTH2_SERVER_URL=${OAUTH2_SERVER_URL:-http://host.docker.internal:8081}
+      - OAUTH2_CLIENT_ID=${OAUTH2_CLIENT_ID:-web}
+      - OAUTH2_CLIENT_SECRET=${OAUTH2_CLIENT_SECRET:-web-secret}
+      - OAUTH2_SCOPE=${OAUTH2_SCOPE:-read}
     ports:
       - "8080:8080"
     depends_on:
@@ -98,4 +102,3 @@ volumes:
 networks:
   es_network:
     driver: bridge
-
