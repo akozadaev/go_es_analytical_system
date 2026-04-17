@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аналитическая система</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="panel" id="authPanel">
+      <h1>Вход и регистрация</h1>
+      <p>Учётные записи обслуживаются сервером <a href="https://github.com/akozadaev/go_oauth2_server" target="_blank" rel="noopener">go_oauth2_server</a> (прокси с этого API).</p>
+
+      <div id="bannerSlot"></div>
+
+      <div class="tabs">
+        <button type="button" id="tabLogin" class="active">Вход</button>
+        <button type="button" id="tabRegister">Регистрация</button>
+      </div>
+
+      <form id="loginForm" class="grid" style="grid-template-columns: 1fr;">
+        <label>
+          Логин
+          <input id="loginUsername" autocomplete="username" required />
+        </label>
+        <label>
+          Пароль
+          <input id="loginPassword" type="password" autocomplete="current-password" required />
+        </label>
+        <div class="actions">
+          <button type="submit">Войти</button>
+        </div>
+      </form>
+
+      <form id="registerForm" class="grid hidden" style="grid-template-columns: 1fr;">
+        <label>
+          Логин
+          <input id="regUsername" autocomplete="username" required />
+        </label>
+        <label>
+          Пароль
+          <input id="regPassword" type="password" autocomplete="new-password" required />
+        </label>
+        <div class="actions">
+          <button type="submit">Создать аккаунт</button>
+        </div>
+      </form>
+
+      <p id="authStatus" class="status"></p>
+      <p class="hint">После входа: ROLE_SUPER_ADMIN / ROLE_ADMIN / ROLE_EDITOR → индексация карт; ROLE_USER → рекомендации локаций.</p>
+    </section>
+
+    <section class="content hidden" id="workspace">
+      <div id="wsBanner"></div>
+      <h2>Рекомендации локаций</h2>
+      <p class="hint">POST /locations/recommend с Bearer access token (если на сервере включён OAuth2 для API).</p>
+
+      <div class="grid">
+        <label>
+          Регион
+          <select id="regionSelect"></select>
+        </label>
+        <label>
+          Тип бизнеса
+          <select id="businessSelect"></select>
+        </label>
+      </div>
+      <div class="grid">
+        <label>
+          Лимит
+          <input id="limitInput" type="number" min="1" max="100" value="10" />
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" id="recommendBtn">Получить рекомендации</button>
+        <button type="button" id="logoutBtn" class="secondary">Выйти</button>
+      </div>
+
+      <p id="wsStatus" class="status"></p>
+
+      <div id="mapLinkWrap" class="hidden">
+        <a class="map-link" id="mapLink" href="/map-indexer/">Индексация через Яндекс Карты (admin / super_admin / editor)</a>
+      </div>
+
+      <h2 style="margin-top: 24px;">Ответ API</h2>
+      <pre class="raw" id="resultPre">{}</pre>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

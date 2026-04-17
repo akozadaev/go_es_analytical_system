@@ -32,6 +32,18 @@ function setStatus(message, isError = false) {
   statusEl.style.color = isError ? '#b91c1c' : '#166534';
 }
 
+async function readJSONResponse(response) {
+  const text = await response.text();
+  if (!text.trim()) {
+    return {};
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Сервер вернул не-JSON ответ (${response.status}): ${text.slice(0, 180)}`);
+  }
+}
+
 function getBusinessTypes() {
   return fields.businessTypes.value
     .split(',')
@@ -168,7 +180,7 @@ async function createIndex() {
   try {
     setStatus('Создаю индекс...');
 
-    const response = await fetch('/api/create-index', {
+    const response = await fetch('/map-indexer/api/create-index', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -179,7 +191,7 @@ async function createIndex() {
       })
     });
 
-    const result = await response.json();
+    const result = await readJSONResponse(response);
     if (!response.ok || !result.ok) {
       throw new Error(result.message || 'Не удалось создать индекс');
     }
@@ -199,7 +211,7 @@ async function bulkIndex() {
 
     setStatus(`Индексирую ${locations.length} точек...`);
 
-    const response = await fetch('/api/bulk-index', {
+    const response = await fetch('/map-indexer/api/bulk-index', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -211,7 +223,7 @@ async function bulkIndex() {
       })
     });
 
-    const result = await response.json();
+    const result = await readJSONResponse(response);
     if (!response.ok || !result.ok) {
       const msg = result.message || 'Ошибка индексации';
       throw new Error(msg);
@@ -231,7 +243,7 @@ async function saveXml() {
     }
 
     setStatus(`Сохраняю XML для ${locations.length} точек...`);
-    const response = await fetch('/api/save-xml', {
+    const response = await fetch('/map-indexer/api/save-xml', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -240,7 +252,7 @@ async function saveXml() {
       })
     });
 
-    const result = await response.json();
+    const result = await readJSONResponse(response);
     if (!response.ok || !result.ok) {
       throw new Error(result.message || 'Ошибка сохранения XML');
     }

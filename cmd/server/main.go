@@ -156,6 +156,9 @@ func main() {
 	router.HandleFunc("/map-indexer", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/map-indexer/", http.StatusFound)
 	}).Methods(http.MethodGet)
+	router.HandleFunc("/map-indexer/api/create-index", h.MapCreateIndex).Methods(http.MethodPost)
+	router.HandleFunc("/map-indexer/api/bulk-index", h.MapBulkIndex).Methods(http.MethodPost)
+	router.HandleFunc("/map-indexer/api/save-xml", h.MapSaveXML).Methods(http.MethodPost)
 	router.PathPrefix("/map-indexer/").Handler(http.StripPrefix("/map-indexer/", http.FileServer(http.Dir(mapDir))))
 
 	router.HandleFunc("/health", h.HealthCheck).Methods("GET")
